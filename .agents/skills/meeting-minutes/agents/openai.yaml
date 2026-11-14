@@ -1,0 +1,4 @@
+interface:
+  display_name: "中英会议纪要"
+  short_description: "把普通话、英语和混合语音整理成带时间码的纪要并同步到 Notion"
+  default_prompt: "用 $meeting-minutes 整理这次会议，保留英文术语并标出决定、行动项和待确认事项。"

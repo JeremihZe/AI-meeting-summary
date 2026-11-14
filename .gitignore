@@ -1,0 +1,16 @@
+/meetings/
+/models/
+.env
+.env.*
+*.wav
+*.mp3
+*.m4a
+*.mp4
+*.webm
+*.ogg
+*.flac
+*.aac
+*.mov
+*.bin
+.DS_Store
+__pycache__/
