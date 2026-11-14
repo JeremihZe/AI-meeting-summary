@@ -5,6 +5,7 @@ import EventKit
 @MainActor
 final class MeetingWatcher: NSObject, NSApplicationDelegate {
     private let store = EKEventStore()
+    private let autoPublish = CommandLine.arguments.contains("--auto-publish")
     private let calendarEnabled = CommandLine.arguments.contains("--calendar")
     private let teams = "com.microsoft.teams2"
     private var promptedForActivity = false
@@ -112,9 +113,48 @@ final class MeetingWatcher: NSObject, NSApplicationDelegate {
         try? input.fileHandleForWriting.close()
         process.waitUntilExit()
         if process.terminationStatus == 0 {
-            show(title: "会议录音已保存", details: output.path)
+            if autoPublish {
+                processMinutes(output)
+            } else {
+                show(title: "会议录音已保存", details: output.path)
+            }
         } else {
             show(title: "录音未完整保存", details: "查看终端中的错误和输出目录。")
+        }
+    }
+
+    private func processMinutes(_ folder: URL) {
+        let runner = Process()
+        let root = URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+        runner.executableURL = URL(fileURLWithPath: "/bin/sh")
+        runner.arguments = [root.appending(path: "macos/process-meeting.sh").path, folder.path]
+        let result = Pipe()
+        runner.standardOutput = result
+        runner.terminationHandler = { process in
+            let data = result.fileHandleForReading.readDataToEndOfFile()
+            let link = String(decoding: data, as: UTF8.self).split(whereSeparator: \.isNewline).last
+            let success = process.terminationStatus == 0
+            Task { @MainActor in
+                if success, let link {
+                    let alert = NSAlert()
+                    alert.messageText = "会议纪要已同步"
+                    alert.informativeText = String(link)
+                    alert.addButton(withTitle: "打开 Notion")
+                    alert.addButton(withTitle: "关闭")
+                    NSApp.activate(ignoringOtherApps: true)
+                    if alert.runModal() == .alertFirstButtonReturn, let url = URL(string: String(link)),
+                       url.scheme == "https" {
+                        NSWorkspace.shared.open(url)
+                    }
+                } else {
+                    self.show(title: "纪要处理未完成", details: "录音已保存在 \(folder.path)。请查看终端中的错误后重试。")
+                }
+            }
+        }
+        do {
+            try runner.run()
+        } catch {
+            show(title: "纪要处理无法启动", details: error.localizedDescription)
         }
     }
 
@@ -171,7 +211,7 @@ struct WatchMeetings {
     @MainActor
     static func main() {
         if CommandLine.arguments.contains("--help") {
-            print("Usage: watch-meetings [--calendar]")
+            print("Usage: watch-meetings [--calendar] [--auto-publish]")
             return
         }
         let app = NSApplication.shared

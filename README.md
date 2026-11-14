@@ -63,3 +63,23 @@ build/record-meeting meetings/teams-example
 两个音轨和时间信息保存在同一目录。可以把两个音轨和 `capture.json` 一起交给 `$meeting-minutes`。若双方存在重叠发言，优先分别识别并按时间合并。多位远端发言人仍共用一条音轨。
 
 录音与提醒原型需要用一次真实 Teams 通话和两种账户的邀请验收。实时双语字幕和模型评测见 [新版流程与选型](docs/workflow.md)。
+
+## 停录后自动生成并同步
+
+本机转写环境就绪后，可以在启动录音助手的终端中配置以下环境变量。凭据请保存在本机，避免写入仓库或聊天。
+
+- `OPENAI_API_KEY` 使用有 API 用量额度的项目密钥。默认模型为 `gpt-6.1-sol`，可用 `MEETING_MINUTES_MODEL` 覆盖。
+- `NOTION_TOKEN` 使用 Notion 工作区的内部连接凭据，开启 Insert content，并从目标普通页面的 **Connections** 菜单将连接添加到该页面。
+- `NOTION_PARENT_PAGE_ID` 使用该普通页面的 UUID。每份纪要会创建为一个子页面。
+
+[OpenAI API 配置](https://developers.openai.com/api/docs/quickstart) · [Notion 内部连接说明](https://developers.notion.com/guides/connections-and-tokens/internal-connections)
+
+先单独跑一次已完成的录音目录，再开启自动模式：
+
+```bash
+sh macos/process-meeting.sh meetings/your-capture-directory
+sh macos/build.sh
+build/watch-meetings --calendar --auto-publish
+```
+
+自动模式在停录成功后启动处理，完成时显示 Notion 链接。音频和转录留在本地，OpenAI 收到带时间码的转录文本，Notion 收到最终纪要。若同步失败，重跑同一个录音目录可复用已保存的转录和纪要。若程序提示上一次写入结果不明，先在目标页面查找该纪要。确认未创建后再移除录音目录里的 `.notion-write-pending` 并重试。
