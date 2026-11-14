@@ -22,3 +22,17 @@
 资料：[FunASR 官方选型指南](https://github.com/modelscope/FunASR/blob/main/docs/model_selection.md) · [Qwen3-ASR](https://github.com/QwenLM/Qwen3-ASR) · [Qwen3](https://github.com/QwenLM/Qwen3) · [Whisper.cpp 模型说明](https://github.com/ggml-org/whisper.cpp/tree/master/models)。
 
 建议用同意参与测试的双人通话，分别录一段普通话主导、一段纯英文和一段句内混合。标出原文、发言时间、术语、人名、数字和最终决定。转写按中文字符错误率、英文词错误率、关键信息错误以及耗时比较。字幕额外测首字和稳定片段延迟。纪要按决定是否有证据、待办字段是否准确以及遗漏数逐项检查。模型依据这组结果和本地处理要求一起决定。
+
+## 第一轮会后转写
+
+先用 SenseVoiceSmall 和 FSMN-VAD 在本机 CPU 识别。测试目录需要录音程序生成的 `capture.json` 和两路 CAF 音频。首次运行会下载模型权重。使用独立 Python 环境：
+
+```bash
+python3 -m venv build/funasr-venv
+build/funasr-venv/bin/python -m pip install "funasr==1.4.25" torch torchaudio modelscope
+build/funasr-venv/bin/python .agents/skills/meeting-minutes/scripts/transcribe_capture.py meetings/<capture-directory>
+```
+
+输出的 `transcript.sensevoice.json` 保留音轨和相对会议起点的毫秒时间。两路有重叠时仍保留各自条目。分段时间来自语音活动检测。原始转录留在本地，人工校对另存一份。若录音标明时间戳有间断，自动转录入口会停止并提示人工复核。实测前不要将系统生成的时间码当作逐词定位。
+
+后续把处理任务接到录音成功结束的位置。先写本地转录，成功后把带时间码的文本送给选定的云端模型生成结构化纪要，再用 Notion API 归档。后台程序需要独立配置云端和 Notion 凭据。上传前保留任务状态，Notion 成功时保存页面 ID，遇到写入超时时先核实结果再重试。录音和校对用的转录留在本地，Notion 保存最终纪要。
