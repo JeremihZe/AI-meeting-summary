@@ -41,3 +41,25 @@ python3 .agents/skills/meeting-minutes/scripts/transcribe.py /path/to/meeting.m4
 git remote add origin https://github.com/<owner>/meeting-minutes.git
 git push -u origin main
 ```
+
+## macOS 在线会议录音原型
+
+在 macOS 15 或更新版本上，从仓库根目录编译并运行：
+
+```bash
+sh macos/build.sh
+build/watch-meetings --calendar
+```
+
+开启 `--calendar` 后，允许读取 Apple Calendar。先在 macOS「互联网账户」中加入 Google 和公司 Microsoft Exchange 账户，并开启日历同步。助手在后台运行时，会在带已支持会议链接的日程开始前五分钟提示。公司账户能否同步取决于组织策略，部分邀请的会议链接也可能未同步到本机。
+
+Teams 桌面版同时使用输入和输出设备时，助手会弹出录音选择。这个信号也可能来自设备测试或通话预览，点击前请确认已入会。首次录音需要授予麦克风和屏幕与系统音频录制权限。确认后分别写入 `remote.caf` 和 `microphone.caf`，不保存画面。会议结束时点击停止并保存。使用 Teams 网页版或检测失败时，可手动启动：
+
+```bash
+mkdir -p meetings
+build/record-meeting meetings/teams-example
+```
+
+两个音轨和时间信息保存在同一目录。可以把两个音轨和 `capture.json` 一起交给 `$meeting-minutes`。若双方存在重叠发言，优先分别识别并按时间合并。多位远端发言人仍共用一条音轨。
+
+录音与提醒原型需要用一次真实 Teams 通话和两种账户的邀请验收。实时双语字幕和模型评测见 [新版流程与选型](docs/workflow.md)。

@@ -22,3 +22,7 @@ description: Turn Mandarin, English, or mixed-language meeting recordings and tr
 ## 同步到 Notion
 
 用户要求保存、归档或同步到 Notion 时，读取 [Notion 同步](references/notion.md)，同步刚生成的纪要并在回复中给出 Notion 链接。同一条请求可完成整理和同步。仅整理时交付本地纪要。
+
+## 双路录音
+
+当输入目录含 `capture.json`、`remote.caf` 和 `microphone.caf` 时，分别转写两路，使用清单中的 `startOffsetSeconds` 把字幕统一到同一时间轴，再按起始时间合并。麦克风标记为“本机麦克风”，远端标记为“会议音频”。若清单显示 `complete: false` 或有时间戳间断，提示用户复核受影响轨道，勿把间断后的时间码当作精确定位。保留各路字幕，交付同一份结构化纪要。按用户指定的转写方案或使用已有转录稿。用户尚在选型时，依照其指示使用基线或等待选择。
