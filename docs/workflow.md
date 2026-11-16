@@ -29,7 +29,10 @@
 
 ```bash
 python3 -m venv build/funasr-venv
-build/funasr-venv/bin/python -m pip install "funasr==1.4.25" torch torchaudio modelscope
+PIP_CERT=/etc/ssl/cert.pem build/funasr-venv/bin/python -m pip install "funasr==1.4.25" torch torchaudio modelscope
+export SSL_CERT_FILE=/etc/ssl/cert.pem
+export REQUESTS_CA_BUNDLE="$SSL_CERT_FILE"
+export MODELSCOPE_CACHE="$PWD/models/modelscope"
 build/funasr-venv/bin/python .agents/skills/meeting-minutes/scripts/transcribe_capture.py meetings/<capture-directory>
 ```
 

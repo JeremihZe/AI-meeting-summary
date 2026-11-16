@@ -83,3 +83,5 @@ build/watch-meetings --calendar --auto-publish
 ```
 
 自动模式在停录成功后启动处理，完成时显示 Notion 链接。音频和转录留在本地，OpenAI 收到带时间码的转录文本，Notion 收到最终纪要。若同步失败，重跑同一个录音目录可复用已保存的转录和纪要。若程序提示上一次写入结果不明，先在目标页面查找该纪要。确认未创建后再移除录音目录里的 `.notion-write-pending` 并重试。
+
+自动处理脚本默认使用 macOS 的受信任证书和项目内的模型缓存。手动调用 Python 脚本时，如遇证书校验错误，可在当前终端设置 `SSL_CERT_FILE=/etc/ssl/cert.pem`。需要下载模型时，按 [会后转写说明](docs/workflow.md) 同时设置模型下载工具使用的证书及缓存路径。

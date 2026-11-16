@@ -7,6 +7,12 @@ capture="${1:?Pass the completed recording directory.}"
 python="$root/build/funasr-venv/bin/python"
 transcript="$capture/transcript.sensevoice.json"
 
+export MODELSCOPE_CACHE="${MODELSCOPE_CACHE:-$root/models/modelscope}"
+if [ -r /etc/ssl/cert.pem ]; then
+  export SSL_CERT_FILE="${SSL_CERT_FILE:-/etc/ssl/cert.pem}"
+  export REQUESTS_CA_BUNDLE="${REQUESTS_CA_BUNDLE:-$SSL_CERT_FILE}"
+fi
+
 : "${OPENAI_API_KEY:?Set OPENAI_API_KEY before enabling cloud minutes.}"
 : "${NOTION_TOKEN:?Set NOTION_TOKEN before enabling Notion sync.}"
 : "${NOTION_PARENT_PAGE_ID:?Set NOTION_PARENT_PAGE_ID before enabling Notion sync.}"
